@@ -144,22 +144,9 @@ def api_add_expense():
                   date=dt_date, time=dt_time)
     db.session.add(exp)
     db.session.commit()
+    sp = Split(expense_id=exp.id, user_id=current_user.id, share_amount=amount)
+    db.session.add(sp)
 
-    # Automatically split among all active household members
-    members = User.query.filter_by(household_id=current_user.household_id, is_active=True).all()
-    if not members:
-        # fallback: assign full to payer
-        sp = Split(expense_id=exp.id, user_id=current_user.id, share_amount=amount)
-        db.session.add(sp)
-    else:
-        per = round(amount / len(members), 2)
-        shares = [per] * len(members)
-        diff = round(amount - sum(shares), 2)
-        if diff != 0:
-            shares[-1] = round(shares[-1] + diff, 2)
-        for u, s in zip(members, shares):
-            sp = Split(expense_id=exp.id, user_id=u.id, share_amount=s)
-            db.session.add(sp)
     
     db.session.commit()
     return jsonify({"message": "expense added", "expense_id": exp.id})
