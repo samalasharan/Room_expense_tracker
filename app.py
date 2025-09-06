@@ -6,6 +6,12 @@ from models import User, Household, Expense, Split
 from auth import auth_bp, make_google_bp
 from datetime import datetime, date
 import pandas as pd
+import os
+from keep_alive import run_keep_alive
+# Check if we are running on Render and start the keep_alive thread
+if os.environ.get('RENDER'):  # Render sets this environment variable to 'true'
+    run_keep_alive()
+    print("Keep-alive thread started for Render deployment.")
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
